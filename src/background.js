@@ -9,9 +9,6 @@ chrome.commands.onCommand.addListener(function(command) {
 		};
 		chrome.tabs.query(queryInfo, function(tabs){
 			console.log('tabs.query', tabs);
-			let getInfo = {
-				
-			};
 			chrome.windows.getAll(function(windows){
 				console.log('window.getAll', windows);
 				
