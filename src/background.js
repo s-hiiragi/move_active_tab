@@ -15,12 +15,22 @@ chrome.commands.onCommand.addListener(function(command) {
 	let updateWindows = promisify(chrome.windows.update);
 	let updateTabs = promisify(chrome.tabs.update);
 	let moveTabs = promisify(chrome.tabs.move);
+	let createWindows = promisify(chrome.windows.create);
 
-	function moveTabsToWindow(tabs, windowId) {
-		if (tabs.length == 0) {
+	function createWindowWithTabs(tabIds) {
+		return createWindows({
+			tabId: tabIds[0]
+		}).then(function(win){
+			console.log('createWindowWithTabs', win);
+			moveTabsToWindow(tabIds.slice(1), win.id);
+		});
+	}
+
+	function moveTabsToWindow(tabIds, windowId) {
+		if (tabIds.length == 0) {
 			return;
 		}
-		moveTabs(tabs.map((e) => e.id), {
+		moveTabs(tabIds, {
 			windowId: windowId,
 			index: -1
 		}).then(function(){
@@ -30,14 +40,11 @@ chrome.commands.onCommand.addListener(function(command) {
 			});
 		}).then(function(){
 			console.log('window.update');
-			return updateTabs(tabs.slice(-1)[0].id, {
+			return updateTabs(tabIds.slice(-1)[0], {
 				active: true
 			});
 		}).then(function(){
-			console.log('tabs.update id=' + tabs.slice(-1)[0].id);
-			return queryTabs({
-				currentWindow: true
-			});
+			console.log('tabs.update id=' + tabIds.slice(-1)[0]);
 		})
 	}
 	
@@ -62,7 +69,12 @@ chrome.commands.onCommand.addListener(function(command) {
 				}
 			}
 			if (destWindow) {
-				moveTabsToWindow(tabs, destWindow.id);
+				// If there are another window, move tabs to the window
+				moveTabsToWindow(tabs.map(t => t.id), destWindow.id);
+			} else {
+				// If there are no other windows, create a window with the first tabs
+				// and move rest tabs to the window
+				createWindowWithTabs(tabs.map(t => t.id));
 			}
 		})
 		break;
