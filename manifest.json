@@ -7,7 +7,7 @@
 	
 	"background": {
 		"scripts": ["src/background.js"],
-		"persistent": true
+		"persistent": false
 	},
 	
 	"commands": {
